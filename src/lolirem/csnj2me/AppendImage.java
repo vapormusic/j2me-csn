@@ -1,4 +1,4 @@
-package hello;
+package lolirem.csnj2me;
 
 import javax.microedition.lcdui.*;
 import javax.microedition.midlet.*;

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package hello;
+package lolirem.csnj2me;
 
 
 import com.gowtham.jmp3tag.Tag;
@@ -14,19 +14,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
+import java.util.Enumeration;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
 import javax.microedition.io.HttpsConnection;
 import javax.microedition.io.file.FileConnection;
+import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.Gauge;
+import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.ImageItem;
 import javax.microedition.lcdui.StringItem;
@@ -70,6 +71,20 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   
   private Image scaledimage ;
   
+  Canvas dummyCanvas = new Canvas() {
+
+     protected void paint(Graphics g) {
+          }
+
+   
+  };
+
+    // get the dimensions of the screen:
+
+   int width = dummyCanvas.getWidth ();
+   int height = dummyCanvas.getHeight();
+
+  
   
   /// JSon Objects
   private String musicid = "";
@@ -79,6 +94,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   private String title = "";
   private String album = "";
   private String artist = "";
+  private String lyric = "";
   
   private Gauge gauge;
   private Image image;
@@ -90,6 +106,9 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   StringItem titleframe;
   StringItem artistframe;
   StringItem albumframe;
+  StringItem lyricframe;
+  
+  InputStream imageis;
  
 
   public Midlet() {
@@ -110,6 +129,10 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
         }
 
         mainForm.append(gauge);
+        try{FileConnection fileCon2 = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") +"/csnmusic");
+            if(!fileCon2.exists()){fileCon2.mkdir();}
+        }catch(Exception xcx){}
+        
         try{
         //    downloadfile("http://data.chiasenhac.com/data/cover/116/115704.jpg",System.getProperty("fileconn.dir.private") + "/cache.jpg");
     //  FileConnection fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") + "/cache.jpg");      
@@ -126,6 +149,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   
   }catch(Exception e){e.printStackTrace();}
     display.setCurrent(mainForm);
+    //System.out.println(removeDiacriticVN("triệu"));
     
    // try{  String supportedTypes[] = Manager.getSupportedContentTypes(null);
    //     for (int i = 0; i < supportedTypes.length; i++) {
@@ -142,6 +166,20 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   }
 
   public void destroyApp(boolean unconditional) {
+      try{player.stop();
+            player.deallocate();
+            player.close();
+            player =null;
+            imageis.close();
+            imageis = null;
+            fileCon.close();
+            fileCon = null;
+            image = null;
+            artimage=null;
+            scaledimage = null;
+            mainForm.deleteAll();
+            }catch(Exception xc){} 
+      deletefilesinfolder(System.getProperty("fileconn.dir.private") +"/csnmusic");
       
   }
   
@@ -150,15 +188,23 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
 	}
 
   public void commandAction(Command c, Displayable s) {
+     
     if (c == sendCommand) {
             try{player.stop();
             player.deallocate();
             player.close();
             player =null;
+            imageis.close();
+            imageis = null;
+            fileCon.close();
             fileCon = null;
             image = null;
+            artimage=null;
             }catch(Exception xc){} 
             text = URL.getString();
+            mainForm.deleteAll();
+            mainForm = null;
+            System.gc();
               mainForm = new Form("CSN Player");
               URL = new TextField(null, text, 250, TextField.ANY);
     mainForm.append(URL);
@@ -292,7 +338,6 @@ int character;
 //while (line != null) { sb.append(line); line = br.readLine(); } 
         
         int character;
-InputStream is;
     boolean newline = false;
     String content = "";
       try{
@@ -376,7 +421,7 @@ InputStream is;
     private void playMusic(){
         if(!playingmusicid.equals(musicid)){
             playingmusicid = musicid;
-      try{   fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") + "/cache2.mp3");
+      try{   fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") +"/csnmusic"+ "/cache2.mp3");
      
                        player = Manager.createPlayer(fileCon.openInputStream(), "audio/mpeg");
         try{
@@ -401,7 +446,7 @@ InputStream is;
       }catch(Exception df){df.printStackTrace();}}}
     private void removeTag(){
        try{
-    Tag tag = new Tag(System.getProperty("fileconn.dir.private") + "/cache2.mp3");
+    Tag tag = new Tag(System.getProperty("fileconn.dir.private") +"/csnmusic"+ "/cache2.mp3");
         try
         {
            tag.Read();
@@ -452,13 +497,15 @@ InputStream is;
      fileCon = (FileConnection) Connector.open(savelocation);
      //    FileConnection fileConn = (FileConnection) Connector.open("file:///root1/cache.mp3");
     try{
+        
+//        fileCon.mkdir();
         if (!fileCon.exists()) {
                 fileCon.create();
                 System.out.println("file created");
             } else {
-try{            fileCon.delete();} catch (Exception xxc){};
+try{            fileCon.delete();
             fileCon.create();
-            System.out.println("file already exist!");
+            System.out.println("file already exist!");} catch (Exception xxc){};
         }
          DataOutputStream dos = new DataOutputStream(fileCon.openOutputStream());
            byte[] buf = new byte[1024];
@@ -518,20 +565,25 @@ try{            fileCon.delete();} catch (Exception xxc){};
     
     public void searchandplay(){
             try{
-        
+       
     //// get music id    
-    String searchre = requestUsingGET("http://search.chiasenhac.vn/api/search.php?code=csn22052018&s="+text.replace(' ', '+')+"&row=1");
+              
+    String searchre = requestUsingGET("http://search.chiasenhac.vn/api/search.php?code=csn22052018&s="+ removeDiacriticVN(text.replace(' ', '+'))+"&row=1");
     musicid = getBetweenStrings(searchre , "\"music_id\":\"","\",\"cat_id\":\"");
     System.out.println("musicid :" + musicid);
-    
+  //  System.out.println("musicid :" + Normalizer.normalize("triệu",Normalizer.NFKC));
     /// get music url
     String searchre2 = requestUsingGET("http://old.chiasenhac.vn/api/listen.php?code=csn22052018&return=json&m=" + musicid);
     String musicurlraw ="";
     String imageurlraw ="";
+    String lyricraw ="";
     try{musicurlraw = getBetweenStrings(searchre2 , "\"file_url\":\"","\",\"file_32_url\":\"");}catch(Exception vb)
     {musicurlraw = getBetweenStrings(searchre2 , "\"file_url\":\"",".mp3")+".mp3";}
     try{imageurlraw = getBetweenStrings(searchre2 , "\"music_img\":\"",".jpg")+".jpg";}catch(Exception vb)
     {imageurlraw = getBetweenStrings(searchre2 , "\"music_img\":\"",".png")+".png";}
+    lyricraw = getBetweenStrings(searchre2 , "\"music_lyric\":\"","\",\"music_img_height\":\"");
+  System.out.println(URLDecoder(lyricraw));
+    lyric = URLDecoder(lyricraw);
     musicurl = replace('\\',"",musicurlraw);
     imageurl = replace('\\',"",imageurlraw);
     
@@ -544,24 +596,29 @@ try{            fileCon.delete();} catch (Exception xxc){};
              image = null;
           //  try{ artimage.setImage(Image.createImage(new byte[1],0,1));}catch (Exception xcxa){}
              fileCon =null;
-            downloadfile(imageurl,System.getProperty("fileconn.dir.private") + "/"+musicid+".jpg");
+            downloadfile(imageurl,System.getProperty("fileconn.dir.private") +"/csnmusic"+ "/"+musicid+".jpg");
             
-       fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") + "/"+musicid+".jpg");      
-      InputStream cx = fileCon.openInputStream();
+       fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.private") +"/csnmusic"+ "/"+musicid+".jpg");  
+      try{ imageis.close();}catch (Exception xc){}
+      imageis = fileCon.openInputStream();
       
       
-      image = Image.createImage(cx);
-      titleframe = new StringItem("",unescapeJava(title) + "\n");
+      
+      image = Image.createImage(imageis);
+      fileCon.close();
+      titleframe = new StringItem("", "\n"+ unescapeJava(title) + "\n");
       artistframe = new StringItem("",unescapeJava(artist) + "\n");
       albumframe = new StringItem("",unescapeJava(album)+ "\n");
-      scaledimage = scale(image,128,128);
+      lyricframe = new StringItem("",lyric+ "\n");
+      int imagesize = width -40;
+      scaledimage = scale(image,imagesize,imagesize);
       artimage = new ImageItem(null, scaledimage , ImageItem.LAYOUT_DEFAULT, null);
        
         mainForm.append(artimage);
         mainForm.append(titleframe);
         mainForm.append(artistframe);
         mainForm.append(albumframe);
-        
+        mainForm.append(lyricframe);
         
         
         
@@ -569,7 +626,7 @@ try{            fileCon.delete();} catch (Exception xxc){};
  
   
   }catch(Exception e){e.printStackTrace();}
-         downloadfile(musicurl,System.getProperty("fileconn.dir.private") + "/cache2.mp3");
+         downloadfile(musicurl,System.getProperty("fileconn.dir.private") +"/csnmusic"+ "/cache2.mp3");
          playMusic();
         
     
@@ -595,6 +652,101 @@ try{            fileCon.delete();} catch (Exception xxc){};
 
     return processed;
 } 
+   private static final String tab00c0 = "AAAAAAACEEEEIIII" +
+    "DNOOOOO\u00d7\u00d8UUUUYI\u00df" +
+    "aaaaaaaceeeeiiii" +
+    "\u00f0nooooo\u00f7\u00f8uuuuy\u00fey" +
+    "AaAaAaCcCcCcCcDd" +
+    "DdEeEeEeEeEeGgGg" +
+    "GgGgHhHhIiIiIiIi" +
+    "IiJjJjKkkLlLlLlL" +
+    "lLlNnNnNnnNnOoOo" +
+    "OoOoRrRrRrSsSsSs" +
+    "SsTtTtTtUuUuUuUu" +
+    "UuUuWwYyYZzZzZzF";
+
+   public static String removeDiacritic(String source) {
+    char[] vysl = new char[source.length()];
+    char one;
+    for (int i = 0; i < source.length(); i++) {
+        one = source.charAt(i);
+        if (one >= '\u00c0' && one <= '\u017f') {
+            one = tab00c0.charAt((int) one - '\u00c0');
+        }
+        vysl[i] = one;
+    }
+    return new String(vysl);
+}
+   
+  
+   
+    public static String removeDiacriticVN(String source) {
+           String vdc = "ẮẰẲẴẶĂẤẦẨẪẬÂÁÀÃẢẠĐẾỀỂỄỆÊÉÈẺẼẸÍÌỈĨỊỐỒỔỖỘÔỚỜỞỠỢƠÓÒÕỎỌỨỪỬỮỰƯÚÙỦŨỤÝỲỶỸỴ";
+           String vdclower = "ắằẳẵặăấầẩẫậâáàãảạđếềểễệêéèẻẽẹíìỉĩịốồổỗộôớờởỡợơóòõỏọứừửữựưúùủũụýỳỷỹỵ";
+           String vdc3 = "adeiouy";
+           char[] vdc2 = vdc.toCharArray();
+           char[] vdc2l = vdclower.toCharArray();
+    char[] vysl = new char[source.length()];
+    char one;
+    for (int i = 0; i < source.length(); i++) {
+        one = source.charAt(i);
+        
+        for (int u = 0; u < vdc2.length; u++) {
+            if (one == vdc2[u] || one == vdc2l[u] ){
+                if(u<16){one='a';}
+                else if (u<17){one='d';}
+                else if (u<29){one='e';}
+                else if (u<34){one='i';}
+                else if (u<51){one='o';}
+                else if (u<62){one='u';}
+                else {one='y';}
+                break;
+            }
+    }
+        vysl[i] = one;
+    }
+    return new String(vysl);
+}
+    private void deletefilesinfolder(String folder) {
+   try{ FileConnection fconn = (FileConnection) Connector.open(folder);
+    Enumeration en = fconn.list();
+    while (en.hasMoreElements()) {
+    String name = (String) en.nextElement();
+    System.out.println(folder + name);
+    FileConnection tmp = (FileConnection) Connector.open(
+        folder +"/"+ name);
+   try{ tmp.delete();}catch(IOException cvcx){}
+    tmp.close();
+    }
+
+    }catch(Exception cv){cv.printStackTrace();}}
+    
+    private String URLDecoder(String str){
+      String u;  
+    u = unescapeJava(str);
+    u = replace(u,"[NOSUB]", "");
+    u = replace(u,"<span style=\\\"color:#ffffff\\\">", "");
+    u = replace(u,"<span style=\\\"color:#65abbc\\\">", "");
+    u = replace(u,"<\\/span><br \\/>", "\n");
+    return u;
+    }
+    
+    private  String replace( String str, String pattern, String replace ) 
+{
+    int s = 0;
+    int e = 0;
+    StringBuffer result = new StringBuffer();
+
+    while ( (e = str.indexOf( pattern, s ) ) >= 0 ) 
+    {
+        result.append(str.substring( s, e ) );
+        result.append( replace );
+        s = e+pattern.length();
+    }
+    result.append( str.substring( s ) );
+    return result.toString();
+}   
+    
 }
 
 

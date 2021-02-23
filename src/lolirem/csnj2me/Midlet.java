@@ -573,7 +573,7 @@ try{            fileCon.delete();
     System.out.println("musicid :" + musicid);
   //  System.out.println("musicid :" + Normalizer.normalize("triệu",Normalizer.NFKC));
     /// get music url
-    String searchre2 = requestUsingGET("http://old.chiasenhac.vn/api/listen.php?code=csn22052018&return=json&m=" + musicid);
+    String searchre2 = requestUsingGET("https://chiasenhac.vn/api/listen_info_music?music_id=" + musicid+"type=music");
     String musicurlraw ="";
     String imageurlraw ="";
     String lyricraw ="";

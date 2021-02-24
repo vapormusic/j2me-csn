@@ -14,8 +14,7 @@ package com.gowtham.jmp3tag;
  * @author Gowtham
  */
 
-import java.util.*;
-import java.io.*;
+import java.util.Enumeration;
 import javax.microedition.io.*;
 import javax.microedition.io.file.*;
 import javax.microedition.lcdui.*;

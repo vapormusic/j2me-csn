@@ -14,11 +14,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import javaf.security.SecureRandom;
+
 import java.util.Enumeration;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
 import javax.microedition.io.HttpsConnection;
+import javax.microedition.io.SocketConnection;
+import javax.microedition.io.StreamConnection;
 import javax.microedition.io.file.FileConnection;
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Command;
@@ -38,6 +42,21 @@ import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
 import javax.microedition.media.control.VolumeControl;
 import javax.microedition.midlet.MIDlet;
+import net.wstech2.me.httpsclient.HttpsConnectionImpl;
+import org.bouncycastle.crypto.tls.AlwaysValidVerifyer;
+
+import org.bouncycastle.crypto.tls.CertificateVerifyer;
+
+import org.bouncycastle.crypto.tls.TlsCredentials;
+import org.bouncycastle.crypto.tls.TlsProtocolHandler;
+import org.json.me.JSONArray;
+import org.json.me.JSONObject;
+
+
+
+
+
+
 
 
 
@@ -312,78 +331,137 @@ int character;
     return content;
   }
   
-  
-  
-  private void getrequest(){
-       try {
-           		//	ServerSocketConnection ssc = (ServerSocketConnection) Connector.open("socket://:8888");
-			//SocketConnection clientsc = (SocketConnection) ssc.acceptAndOpen();
-			
-		//	SocketConnection telexsc = (SocketConnection) Connector.open("socket://notblocked.telex.cc:443");
-		//	TlsProtocolHandler tls = new TlsProtocolHandler(telexsc.openInputStream(), telexsc.openOutputStream());
-			
-		//	TlsClient tlsClient = new LegacyTlsClient(new AlwaysValidVerifyer());
-			//tls.connect(tlsClient);
-           String defaultURL = "http://search.chiasenhac.vn/api/search.php?code=csn22052018&s=something+comforting&row=1";
-            HttpConnection hpc = (HttpConnection) Connector.open(defaultURL);
-
-          //  TlsProtocolHandler tls = new TlsProtocolHandler(hpc.openDataInputStream(),hpc.openOutputStream());
-      //  DataInputStream in = hpc.openDataInputStream(); 
-      //  TlsClient tlsClient = new LegacyTlsClient(new AlwaysValidVerifyer());
-	//tls.connect(tlsClient);
-       
-        //  BufferedReader br = new BufferedReader(new InputStreamReader(in));
-     //   StringBuilder sb = new StringBuilder(); 
-//String line = br.readLine();
-//while (line != null) { sb.append(line); line = br.readLine(); } 
-        
-        int character;
+  private String requestUsingPOST(String musicid) throws Exception {
+     
+    HttpsConnection hpc = null;
+    InputStream dis = null;
+    InputStream is;
     boolean newline = false;
     String content = "";
-      try{
-    InputStream   dis = hpc.openInputStream();
-      
-     
-      while ((character = dis.read()) != -1) {
-			if ((char) character == '\\') {
-				newline = true;
-				continue;
-			} else {
-				if ((char) character == 'n' && newline) {
-					content += "\n";
-					newline = false;
-				} else if (newline) {
-					content += "\\" + (char) character;
-					newline = false;
-				} else {
-					content += (char) character;
-					newline = false;
-				}
-			}
-		}
-      
-
-      
-      if (hpc != null)
-        hpc.close();
-      if (dis != null)
-        dis.close();
-  //    System.out.println("hum:" + content);
-    } catch (Exception e2) {
+    try {
         
-        System.out.println("bruh: " + e2 );
-        e2.printStackTrace();}
-        String musicid = getBetweenStrings(content, "\"music_id\":\"","\",\"cat_id\":\"");
-        System.out.println(content.indexOf("\"music_id\":\"")); 
-        System.out.println(musicid); 
-       }catch(Exception io){io.printStackTrace();}
-       
-       
-       
-       
-       
-      
+     HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
+					"chiasenhac.vn", 
+					443,
+					"/api/listen_info_music?music_id="+musicid+"&type=music");
+     preconnection.setAllowUntrustedCertificates(true);
+     preconnection.setRequestMethod("POST");
+     HttpsConnection connection = preconnection;
+System.out.println("Response Message:  "
+			+ connection.getResponseMessage());
+String response = getResponse(connection.openInputStream()); 
+System.out.println("HTTPS (HttpsConnectionImpl) "
+	+ "request returned the following CONTENT:" + response);
+
+
+     
+
+    return response;
+    }catch(Exception d){}
+    return "";
   }
+  
+ private String getResponse(InputStream in) throws IOException {
+
+	StringBuffer retval = new StringBuffer();
+	byte[] content = new byte[5];
+
+	int read = 0;
+	while ((read = in.read(content)) != -1) {
+		// this is for testing purposes only
+		// an adequate solution should handle charsets here
+		retval.append(new String(content, 0, read));
+
+	}
+
+	return retval.toString();
+}
+//  
+//  private void getrequest(){
+//       try {
+//           		//	ServerSocketConnection ssc = (ServerSocketConnection) Connector.open("socket://:8888");
+//			//SocketConnection clientsc = (SocketConnection) ssc.acceptAndOpen();
+//			
+//		//	SocketConnection telexsc = (SocketConnection) Connector.open("socket://notblocked.telex.cc:443");
+//		//	TlsProtocolHandler tls = new TlsProtocolHandler(telexsc.openInputStream(), telexsc.openOutputStream());
+//			
+//		//	TlsClient tlsClient = new LegacyTlsClient(new AlwaysValidVerifyer());
+//			//tls.connect(tlsClient);
+//           String defaultURL = "http://search.chiasenhac.vn/api/search.php?code=csn22052018&s=something+comforting&row=1";
+//            HttpConnection hpc = (HttpConnection) Connector.open(defaultURL);
+//
+//          //  TlsProtocolHandler tls = new TlsProtocolHandler(hpc.openDataInputStream(),hpc.openOutputStream());
+//      //  DataInputStream in = hpc.openDataInputStream(); 
+//      //  TlsClient tlsClient = new LegacyTlsClient(new AlwaysValidVerifyer());
+//	//tls.connect(tlsClient);
+//       
+//        //  BufferedReader br = new BufferedReader(new InputStreamReader(in));
+//     //   StringBuilder sb = new StringBuilder(); 
+////String line = br.readLine();
+////while (line != null) { sb.append(line); line = br.readLine(); } 
+//        
+//        int character;
+//    boolean newline = false;
+//    String content = "";
+//      try{
+//    InputStream   dis = hpc.openInputStream();
+//      
+//     
+//      while ((character = dis.read()) != -1) {
+//			if ((char) character == '\\') {
+//				newline = true;
+//				continue;
+//			} else {
+//				if ((char) character == 'n' && newline) {
+//					content += "\n";
+//					newline = false;
+//				} else if (newline) {
+//					content += "\\" + (char) character;
+//					newline = false;
+//				} else {
+//					content += (char) character;
+//					newline = false;
+//				}
+//			}
+//		}
+//      
+//
+//      
+////      if (hpc != null)
+////        hpc.close();
+////      if (dis != null)
+////        dis.close();
+//  //    System.out.println("hum:" + content);
+//    } catch (Exception e2) {
+//        
+//        System.out.println("bruh: " + e2 );
+//        e2.printStackTrace();}
+//        String musicid = getBetweenStrings(content, "\"music_id\":\"","\",\"cat_id\":\"");
+//        System.out.println(content.indexOf("\"music_id\":\"")); 
+//        System.out.println(musicid); 
+//       }catch(Exception io){io.printStackTrace();}
+//       
+       
+       
+       
+       
+  //    return "";
+  //}
+           public String readLine(InputStreamReader reader) throws IOException {
+        StringBuffer line = new StringBuffer();
+        int c = reader.read();
+
+        while (c != -1 && c != '\n') {
+            line.append((char)c);
+            c = reader.read();
+        }
+
+        if (line.length() == 0 && c == -1) {
+            return null;
+        }
+
+        return line.toString();
+    }
   static String replace(char rep, String replacement, String word) {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < word.length(); i++) {
@@ -573,23 +651,34 @@ try{            fileCon.delete();
     System.out.println("musicid :" + musicid);
   //  System.out.println("musicid :" + Normalizer.normalize("triệu",Normalizer.NFKC));
     /// get music url
-    String searchre2 = requestUsingGET("https://chiasenhac.vn/api/listen_info_music?music_id=" + musicid+"type=music");
+    String searchre2 = requestUsingPOST(musicid);
     String musicurlraw ="";
     String imageurlraw ="";
     String lyricraw ="";
-    try{musicurlraw = getBetweenStrings(searchre2 , "\"file_url\":\"","\",\"file_32_url\":\"");}catch(Exception vb)
-    {musicurlraw = getBetweenStrings(searchre2 , "\"file_url\":\"",".mp3")+".mp3";}
-    try{imageurlraw = getBetweenStrings(searchre2 , "\"music_img\":\"",".jpg")+".jpg";}catch(Exception vb)
-    {imageurlraw = getBetweenStrings(searchre2 , "\"music_img\":\"",".png")+".png";}
-    lyricraw = getBetweenStrings(searchre2 , "\"music_lyric\":\"","\",\"music_img_height\":\"");
+    JSONObject json = new JSONObject(searchre2);
+    JSONObject data = json.getJSONObject("data");
+    JSONObject music = data.getJSONObject("music");
+    JSONArray urls = music.getJSONArray("file_urls");
+    for (int i = 0; i < urls.length(); i++){
+        
+    if((urls.get(i).toString()).indexOf("128kbps") > -1){
+        JSONObject json2 = new JSONObject(urls.get(i).toString());
+        musicurl = "http"+json2.getString("url").substring(5);
+        
+        break;
+    }
+    }
+    
+
+    lyricraw = music.getString("music_lyric");
   System.out.println(URLDecoder(lyricraw));
     lyric = URLDecoder(lyricraw);
-    musicurl = replace('\\',"",musicurlraw);
-    imageurl = replace('\\',"",imageurlraw);
     
-    title = getBetweenStrings(searchre2 , "\"music_title\":\"","\",\"music_artist\":\"");
-    artist = getBetweenStrings(searchre2 , "\"music_artist\":\"","\",\"music_composer\":\"");
-    album = getBetweenStrings(searchre2 , "\"music_album\":\"","\",\"music_production\":\"");
+    imageurl = "http"+music.getString("cover_image").substring(5);
+    
+    title = music.getString("music_title");
+    artist = music.getString("music_artist");
+    album = music.getString("music_album");
     System.out.println("musicurl :" + musicurl);
      System.out.println("imageurl :" + imageurl);
          try{
@@ -725,9 +814,11 @@ try{            fileCon.delete();
       String u;  
     u = unescapeJava(str);
     u = replace(u,"[NOSUB]", "");
-    u = replace(u,"<span style=\\\"color:#ffffff\\\">", "");
-    u = replace(u,"<span style=\\\"color:#65abbc\\\">", "");
-    u = replace(u,"<\\/span><br \\/>", "\n");
+    u = replace(u,"[/NOSUB]", "");
+    u = replace(u,"<span style=\"color:#ffffff\">", "");
+    u = replace(u,"<span style=\"color:#65abbc\">", "");
+    u = replace(u,"</span><br />", "\n");
+    u = replace(u,"<br />", "");
     return u;
     }
     

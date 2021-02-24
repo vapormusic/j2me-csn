@@ -8,8 +8,8 @@ package com.gowtham.jmp3tag;
  * To change this template, choose Tools | Template Manager
  * and open the template in the editor.
  */
+import java.util.Enumeration;
 import javax.microedition.lcdui.*;
-import java.util.*;
 /**
  *
  * @author Gowtham

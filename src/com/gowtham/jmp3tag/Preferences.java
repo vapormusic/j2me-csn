@@ -9,7 +9,8 @@ package com.gowtham.jmp3tag;
  *
  * @author Gowtham
  */
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import javax.microedition.rms.*;
 
 public class Preferences {

@@ -12,8 +12,8 @@ package com.gowtham.jmp3tag;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Vector;
 import javax.microedition.lcdui.*;
-import java.util.*; 
 import javax.microedition.io.file.*;
 import javax.microedition.io.*;
 

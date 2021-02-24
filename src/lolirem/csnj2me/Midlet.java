@@ -263,6 +263,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
       URL.setString(defaultURL);
       display.setCurrent(mainForm);
     } else if (c == help) {
+        
        try{ player.stop();
        }catch(Exception xcx){} 
     } else if (c == help2) {
@@ -698,7 +699,7 @@ try{            fileCon.delete();
       titleframe = new StringItem("", "\n"+ unescapeJava(title) + "\n");
       artistframe = new StringItem("",unescapeJava(artist) + "\n");
       albumframe = new StringItem("",unescapeJava(album)+ "\n");
-      lyricframe = new StringItem("",lyric+ "\n");
+      lyricframe = new StringItem("","Lyrics:"+"\n"+lyric+ "\n");
       int imagesize = width -40;
       scaledimage = scale(image,imagesize,imagesize);
       artimage = new ImageItem(null, scaledimage , ImageItem.LAYOUT_DEFAULT, null);
@@ -818,7 +819,8 @@ try{            fileCon.delete();
     u = replace(u,"<span style=\"color:#ffffff\">", "");
     u = replace(u,"<span style=\"color:#65abbc\">", "");
     u = replace(u,"</span><br />", "\n");
-    u = replace(u,"<br />", "");
+    u = replace(u,"</span>", "");
+    u = replace(u,"&#039;", "'");
     return u;
     }
     

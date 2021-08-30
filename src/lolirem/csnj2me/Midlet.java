@@ -126,6 +126,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   StringItem artistframe;
   StringItem albumframe;
   StringItem lyricframe;
+  String location = System.getProperty("fileconn.dir.private");
   
   InputStream imageis;
  
@@ -148,13 +149,13 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
         }
 
         mainForm.append(gauge);
-        try{FileConnection fileCon2 = (FileConnection) Connector.open(System.getProperty("fileconn.dir.memorycard") +"csnmusic/");
+        try{FileConnection fileCon2 = (FileConnection) Connector.open(location +"csnmusic/");
             if(!fileCon2.exists()){fileCon2.mkdir();}
         }catch(Exception xcx){}
         
         try{
-        //    downloadfile("http://data.chiasenhac.com/data/cover/116/115704.jpg","System.getProperty("fileconn.dir.memorycard") + "cache.jpg");
-    //  FileConnection fileCon = (FileConnection) Connector.open( System.getProperty("fileconn.dir.memorycard") + "cache.jpg");      
+        //    downloadfile("http://data.chiasenhac.com/data/cover/116/115704.jpg","location + "cache.jpg");
+    //  FileConnection fileCon = (FileConnection) Connector.open( location + "cache.jpg");      
      // InputStream cx = fileCon.openInputStream();
       
       
@@ -199,7 +200,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
             mainForm.deleteAll();
             }catch(Exception xc){}
       
-      deletefilesinfolder( System.getProperty("fileconn.dir.memorycard") +"csnmusic/");
+      deletefilesinfolder( location +"csnmusic/");
       
   }
   
@@ -507,8 +508,8 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
     private void playMusic(){
         if(!playingmusicid.equals(musicid)){
             playingmusicid = musicid;
-      try{ System.out.println(System.getProperty("fileconn.dir.memorycard"));
-          fileCon = (FileConnection) Connector.open( System.getProperty("fileconn.dir.memorycard") +"csnmusic"+ "/cache2.mp3");
+      try{ System.out.println(location);
+          fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
      
                       player = Manager.createPlayer(fileCon.openInputStream(), "audio/mpeg");
      // player = Manager.createPlayer("http://data58.chiasenhac.com/downloads/1210/1/1209204-ac445d2f/128/Mirrors-JustinTimberlake.mp3");
@@ -534,7 +535,7 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
       }catch(Exception df){df.printStackTrace();}}}
     private void removeTag(){
        try{
-    Tag tag = new Tag( System.getProperty("fileconn.dir.memorycard") +"csnmusic"+ "/cache2.mp3");
+    Tag tag = new Tag( location +"csnmusic"+ "/cache2.mp3");
         try
         {
            tag.Read();
@@ -577,23 +578,25 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
 
     
     public void downloadfile(String musicurl, String savelocation){
-      try{
-          HttpConnection conn = (HttpConnection) Connector.open(musicurl);
-           if (conn.getResponseCode() == HttpConnection.HTTP_OK) {
-            DataInputStream dataIn = conn.openDataInputStream();           
-            byte[] buffer = new byte[(int) conn.getLength()];
-            int read = -1;
-            dataIn.readFully(buffer);
-            dataIn.close();
-            conn.close();
-           
-//       if (conn.getResponseCode() == HttpConnection.HTTP_OK) {
-//                   //     InputStream is = conn.openInputStream();
-//                        fileCon = null;}
-     fileCon = (FileConnection) Connector.open(savelocation, Connector.READ_WRITE);
-
+              try{
+                  HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
+					musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()), 
+					443,
+					musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
+               System.out.println(musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()));
+               System.out.println(musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
+     preconnection.setAllowUntrustedCertificates(true);
+     
+     preconnection.setRequestMethod("GET");
+          HttpsConnection conn = preconnection;
+                    if (conn.getResponseCode() == HttpsConnection.HTTP_OK) {
+                        InputStream is = conn.openInputStream();
+                        fileCon = null;
+     fileCon = (FileConnection) Connector.open(savelocation);
+     //    FileConnection fileConn = (FileConnection) Connector.open("file:///root1/cache.mp3");
     try{
-
+        
+//        fileCon.mkdir();
         if (!fileCon.exists()) {
                 fileCon.create();
                 System.out.println("file created");
@@ -602,27 +605,25 @@ try{            fileCon.delete();
             fileCon.create();
             System.out.println("file already exist!");} catch (Exception xxc){};
         }
-
-      try 
-        { 
-            OutputStream os = fileCon.openDataOutputStream();
-            os.write(buffer); 
-            fileCon.setHidden(false);
-        } 
-
-        catch (IOException e) 
-        { 
-            System.out.println(e.getMessage()); 
-        }  
+         DataOutputStream dos = new DataOutputStream(fileCon.openOutputStream());
+           byte[] buf = new byte[1024];
+            int len;
+            while((len=is.read(buf))>0){
+            dos.write(buf,0,len);
+            }
+           // dos.flush();
+            dos.close();
+            
          fileCon.close();
             
-    } catch (Exception xgc){xgc.printStackTrace();}}
+    } catch (Exception xgc){xgc.printStackTrace();}
  //   removeTag();
 
   
                         
-                   
-    }catch(Exception sdsda){} }
+                   }
+    }catch(Exception sdsda){sdsda.printStackTrace();}
+     }
     
     public Image scale(Image original, int newWidth, int newHeight) {
 
@@ -691,7 +692,7 @@ try{            fileCon.delete();
     
 
     lyricraw = music.getString("music_lyric");
-  System.out.println(URLDecoder(lyricraw));
+    System.out.println(URLDecoder(lyricraw));
     lyric = URLDecoder(lyricraw);
     
     imageurl = "http"+music.getString("cover_image").substring(5);
@@ -705,9 +706,9 @@ try{            fileCon.delete();
              image = null;
           //  try{ artimage.setImage(Image.createImage(new byte[1],0,1));}catch (Exception xcxa){}
              fileCon =null;
-            downloadfile(imageurl,System.getProperty("fileconn.dir.memorycard")  +"csnmusic"+ "/"+musicid+".jpg");
+            downloadfile(imageurl,location  +"csnmusic"+ "/"+musicid+".jpg");
             
-       fileCon = (FileConnection) Connector.open(System.getProperty("fileconn.dir.memorycard") +"csnmusic"+ "/"+musicid+".jpg");  
+       fileCon = (FileConnection) Connector.open(location +"csnmusic"+ "/"+musicid+".jpg");  
       try{ imageis.close();}catch (Exception xc){}
       imageis = fileCon.openInputStream();
       
@@ -737,7 +738,7 @@ try{      image = Image.createImage(imageis);
  
   
   }catch(Exception e){e.printStackTrace();}
-         downloadfile(musicurl, System.getProperty("fileconn.dir.memorycard") +"csnmusic"+ "/cache2.mp3");
+         downloadfile(musicurl, location +"csnmusic"+ "/cache2.mp3");
          playMusic();
         
     

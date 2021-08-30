@@ -301,10 +301,10 @@ public class CertificateValidator implements TlsAuthentication {
 			Hashtable serverCertInfo = CertificateValidatorUtils
 					.getServerCertificateInfo(certificateChain, this.getHttpsConnectionImplInstance().getHost());
 
-			System.out.println("validateServerCertificatePurposeAndCommonName");
+			//System.out.println("validateServerCertificatePurposeAndCommonName");
 			validateServerCertificate(serverCertInfo, errors);
 
-			System.out.println("validateCertificateChain");
+			//System.out.println("validateCertificateChain");
 			//validateCertificateChain(serverCertInfo, certificateChain, errors);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,4 +1,4 @@
-/* Copyright 2014 WS/Tech² Informatica LTDA.
+/* Copyright 2014 WS/Techï¿½ Informatica LTDA.
  * 
  * MHC (ME HTTPS Client) - An alternative J2ME Https Client.
  * 
@@ -370,7 +370,7 @@ public class HttpsConnectionUtils {
 	 * 
 	 */
 	public static void logDebug(String message) {
-		System.out.println(message);
+		//System.out.println(message);
 	}
 
 	/**

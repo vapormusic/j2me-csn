@@ -51,7 +51,7 @@ public class ECKeyPairGenerator
         {
             d = new BigInteger(nBitLength, random);
 
-            if (d.compareTo(TWO) < 0  || (d.compareTo(n) >= 0))
+            if (d.compareTo(BigInteger.TWO) < 0  || (d.compareTo(n) >= 0))
             {
                 continue;
             }

@@ -660,7 +660,7 @@ public class CertificateValidatorUtils {
 			RecordStoreException, IOException {
 		Certificate cert = null;
 		byte[] certBA = loadJarResource("/res/certs/" + fullCN + ".der");
-                System.out.println("loli:"+fullCN);
+             //   System.out.println("loli:"+fullCN);
 		if (certBA == null) {
 			if(friendlyCN ==null){
 				friendlyCN = getFriendlyCNFromFullSubjectName(fullCN);

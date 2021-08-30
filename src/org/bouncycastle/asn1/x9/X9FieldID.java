@@ -18,7 +18,8 @@ public class X9FieldID
     extends ASN1Object
     implements X9ObjectIdentifiers
 {
-    private ASN1ObjectIdentifier     id;
+    private ASN1ObjectIdentifier prime_field;
+    private ASN1ObjectIdentifier id;
     private ASN1Primitive parameters;
 
     /**

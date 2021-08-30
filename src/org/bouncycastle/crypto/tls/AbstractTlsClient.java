@@ -11,9 +11,10 @@ public abstract class AbstractTlsClient
     protected TlsCipherFactory cipherFactory;
 
     protected TlsClientContext context;
-
+    public abstract int[] getCipherSuites();
     protected Vector supportedSignatureAlgorithms;
     protected int[] namedCurves;
+
     protected short[] clientECPointFormats, serverECPointFormats;
 
     protected int selectedCipherSuite;
@@ -105,7 +106,9 @@ public abstract class AbstractTlsClient
             TlsUtils.addSignatureAlgorithmsExtension(clientExtensions, supportedSignatureAlgorithms);
         }
 
-        if (TlsECCUtils.containsECCCipherSuites(getCipherSuites()))
+     try{    
+
+         if (TlsECCUtils.containsECCCipherSuites(getCipherSuites()))
         {
             /*
              * RFC 4492 5.1. A client that proposes ECC cipher suites in its ClientHello message
@@ -125,7 +128,7 @@ public abstract class AbstractTlsClient
 
             TlsECCUtils.addSupportedEllipticCurvesExtension(clientExtensions, namedCurves);
             TlsECCUtils.addSupportedPointFormatsExtension(clientExtensions, clientECPointFormats);
-        }
+        }} catch(Exception u){}
 
         return clientExtensions;
     }

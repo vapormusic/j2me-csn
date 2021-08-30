@@ -65,6 +65,7 @@ public abstract class TlsProtocol
     private TlsOutputStream tlsOutputStream = null;
 
     private volatile boolean closed = false;
+   // abstract boolean isServer();
     private volatile boolean failedWithError = false;
     private volatile boolean appDataReady = false;
     private volatile boolean splitApplicationDataRecords = true;
@@ -94,6 +95,7 @@ public abstract class TlsProtocol
     }
 
     protected abstract AbstractTlsContext getContext();
+
 
     protected abstract TlsPeer getPeer();
 
@@ -745,8 +747,8 @@ try{                safeReadRecord();} catch(Exception e){}
 
     protected void sendFinishedMessage()
         throws IOException
-    {
-        byte[] verify_data = createVerifyData(getContext().isServer());
+    {   TlsContext context = getContext();
+        byte[] verify_data = createVerifyData(context.isServer());
 
         HandshakeMessage message = new HandshakeMessage(HandshakeType.finished, verify_data.length);
 

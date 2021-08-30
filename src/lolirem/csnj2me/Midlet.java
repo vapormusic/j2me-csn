@@ -126,7 +126,7 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   StringItem artistframe;
   StringItem albumframe;
   StringItem lyricframe;
-  String location = System.getProperty("fileconn.dir.private");
+  String location = "file:///root1/";
   
   InputStream imageis;
  
@@ -342,8 +342,29 @@ int character;
     boolean newline = false;
     String content = "";
     try {
+       HttpConnection connection = (HttpConnection)Connector.open("http://old.chiasenhac.vn/api/listen.php?code=csn22052018&return=json&m="+musicid);    
+     connection.setRequestMethod("POST");  
+
+     
+     
+     
+System.out.println("Response Message:  "
+			+ connection.getResponseMessage());
+String response = getResponse(connection.openInputStream()); 
+System.out.println("HTTPS (HttpsConnectionImpl) "
+	+ "request returned the following CONTENT:" + response);
+
+
+     JSONObject json = new JSONObject(response);
+     JSONObject music = json.getJSONObject("music_info");
+     title = music.getString("music_title");
+
+    return response;  
+
+    }catch(Exception d){
         
-     HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
+    d.printStackTrace();
+         HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
 					"chiasenhac.vn", 
 					443,
 					"/api/listen_info_music?music_id="+musicid+"&type=music");
@@ -365,9 +386,10 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
      
 
     return response;
-    }catch(Exception d){
-    d.printStackTrace();}
-    return "";
+    
+    
+    }
+  //  return "";
   }
   
  private String getResponse(InputStream in) throws IOException {
@@ -529,7 +551,7 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
         player.deallocate();
         player.close();
         player = null;
-       // removeTag();
+        removeTag();
         playMusic();
         };
       }catch(Exception df){df.printStackTrace();}}}
@@ -579,17 +601,19 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
     
     public void downloadfile(String musicurl, String savelocation){
               try{
-                  HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
-					musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()), 
-					443,
-					musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
-               System.out.println(musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()));
-               System.out.println(musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
-     preconnection.setAllowUntrustedCertificates(true);
-     
-     preconnection.setRequestMethod("GET");
-          HttpsConnection conn = preconnection;
-                    if (conn.getResponseCode() == HttpsConnection.HTTP_OK) {
+//                  HttpsConnectionImpl preconnection = new HttpsConnectionImpl(
+//					musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()), 
+//					443,
+//					musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
+//               System.out.println(musicurl.substring("http://".length(),  musicurl.indexOf("chiasenhac.com")+ "chiasenhac.com".length()));
+//               System.out.println(musicurl.substring(musicurl.indexOf("chiasenhac.com") + "chiasenhac.com".length() ,musicurl.length()));
+//     preconnection.setAllowUntrustedCertificates(true);
+//     
+//     preconnection.setRequestMethod("GET");
+//          HttpsConnection conn = preconnection;
+                  
+                  HttpConnection conn = (HttpConnection)Connector.open(musicurl);
+                    if (conn.getResponseCode() == HttpConnection.HTTP_OK) {
                         InputStream is = conn.openInputStream();
                         fileCon = null;
      fileCon = (FileConnection) Connector.open(savelocation);
@@ -606,12 +630,12 @@ try{            fileCon.delete();
             System.out.println("file already exist!");} catch (Exception xxc){};
         }
          DataOutputStream dos = new DataOutputStream(fileCon.openOutputStream());
-           byte[] buf = new byte[1024];
+           byte[] buf = new byte[128];
             int len;
             while((len=is.read(buf))>0){
             dos.write(buf,0,len);
             }
-           // dos.flush();
+           dos.flush();
             dos.close();
             
          fileCon.close();
@@ -676,9 +700,13 @@ try{            fileCon.delete();
     String musicurlraw ="";
     String imageurlraw ="";
     String lyricraw ="";
-    JSONObject json = new JSONObject(searchre2);
-    JSONObject data = json.getJSONObject("data");
-    JSONObject music = data.getJSONObject("music");
+    JSONObject json;
+    JSONObject data; 
+    JSONObject music;
+    try{
+     json = new JSONObject(searchre2);
+     data = json.getJSONObject("data");
+     music = data.getJSONObject("music");
     JSONArray urls = music.getJSONArray("file_urls");
     for (int i = 0; i < urls.length(); i++){
         
@@ -688,6 +716,15 @@ try{            fileCon.delete();
         
         break;
     }
+    imageurl = "http"+music.getString("cover_image").substring(5);
+    title = music.getString("music_title");
+    }
+    }catch(Exception e){
+     json = new JSONObject(searchre2);
+     music = json.getJSONObject("music_info");
+     musicurl = music.getString("file_url");
+     imageurl = music.getString("music_img");
+     title = music.getString("music_title");
     }
     
 
@@ -695,9 +732,9 @@ try{            fileCon.delete();
     System.out.println(URLDecoder(lyricraw));
     lyric = URLDecoder(lyricraw);
     
-    imageurl = "http"+music.getString("cover_image").substring(5);
     
-    title = music.getString("music_title");
+    
+    
     artist = music.getString("music_artist");
     album = music.getString("music_album");
     System.out.println("musicurl :" + musicurl);

@@ -131,11 +131,17 @@ public class Midlet extends MIDlet implements CommandListener, PlayerListener {
   InputStream imageis;
  
 
-  public Midlet() {
+  public Midlet() {    
+      String location1 = System.getProperty("fileconn.dir.memorycard");
+      String location2 = System.getProperty("fileconn.dir.private");
+             if(location1 !=null ) {location = location1;} else 
+             if(location2 !=null ) {location = location2;}
     display = Display.getDisplay(this);
+
   }
 
   public void startApp() {
+
     mainForm = new Form("CSN Player");
     URL = new TextField(null, defaultURL, 250, TextField.ANY);
     mainForm.append(URL);
@@ -326,7 +332,8 @@ int character;
         dis.close();
    //   System.out.println("hum:" + content);
     } catch (Exception e2) {
-        
+        hpc.close();
+        dis.close();
         System.out.println("bruh: " + e2 );
         e2.printStackTrace();
     }
@@ -527,14 +534,31 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
 
     return result;
   }
-    private void playMusic(){
+    private void playMusic(String yah){
         if(!playingmusicid.equals(musicid)){
             playingmusicid = musicid;
       try{ System.out.println(location);
-          fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
+          
      
-                      player = Manager.createPlayer(fileCon.openInputStream(), "audio/mpeg");
-     // player = Manager.createPlayer("http://data58.chiasenhac.com/downloads/1210/1/1209204-ac445d2f/128/Mirrors-JustinTimberlake.mp3");
+                 //     player = Manager.createPlayer(fileCon.openInputStream(), "audio/mpeg");
+      if(yah == "y"){
+            fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
+     if(!fileCon.exists()) {
+         downloadfile(musicurl, location +"csnmusic"+ "/cache2.mp3");
+          fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
+         removeTag();}
+     
+       fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
+        player = Manager.createPlayer(fileCon.openInputStream(),"audio/mpeg");
+        System.out.println("duh");
+      }else{
+     try{ player = Manager.createPlayer(musicurl); } catch(Exception u){
+         System.out.println("fast load failed");
+
+         fileCon = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");
+                 if(!fileCon.exists())   downloadfile(musicurl, location +"csnmusic"+ "/cache2.mp3");
+          FileConnection fileCon2 = (FileConnection) Connector.open( location +"csnmusic"+ "/cache2.mp3");         
+        player = Manager.createPlayer(fileCon2.openInputStream(),"audio/mpeg");}}
         try{
                      //   Player player = Manager.createPlayer(is, "audio/mpeg");
                         player.addPlayerListener(this);
@@ -544,7 +568,10 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
                         vc.setLevel(100);
                             }
                         player.prefetch();
-                        player.start();}
+                        player.start();
+                        
+        }
+        
         catch(MediaException mex){
             musicid = "";
         mex.printStackTrace();
@@ -552,8 +579,9 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
         player.close();
         player = null;
         removeTag();
-        playMusic();
+        playMusic("y");
         };
+       
       }catch(Exception df){df.printStackTrace();}}}
     private void removeTag(){
        try{
@@ -623,7 +651,7 @@ System.out.println("HTTPS (HttpsConnectionImpl) "
 //        fileCon.mkdir();
         if (!fileCon.exists()) {
                 fileCon.create();
-                System.out.println("file created");
+                System.out.println("file created: " + savelocation);
             } else {
 try{            fileCon.delete();
             fileCon.create();
@@ -635,7 +663,7 @@ try{            fileCon.delete();
             while((len=is.read(buf))>0){
             dos.write(buf,0,len);
             }
-           dos.flush();
+          // dos.flush();
             dos.close();
             
          fileCon.close();
@@ -713,11 +741,11 @@ try{            fileCon.delete();
     if((urls.get(i).toString()).indexOf("128kbps") > -1){
         JSONObject json2 = new JSONObject(urls.get(i).toString());
         musicurl = "http"+json2.getString("url").substring(5);
-        
+            imageurl = "http"+music.getString("cover_image").substring(5);
+    title = music.getString("music_title");
         break;
     }
-    imageurl = "http"+music.getString("cover_image").substring(5);
-    title = music.getString("music_title");
+
     }
     }catch(Exception e){
      json = new JSONObject(searchre2);
@@ -743,40 +771,46 @@ try{            fileCon.delete();
              image = null;
           //  try{ artimage.setImage(Image.createImage(new byte[1],0,1));}catch (Exception xcxa){}
              fileCon =null;
-            downloadfile(imageurl,location  +"csnmusic"+ "/"+musicid+".jpg");
-            
-       fileCon = (FileConnection) Connector.open(location +"csnmusic"+ "/"+musicid+".jpg");  
-      try{ imageis.close();}catch (Exception xc){}
-      imageis = fileCon.openInputStream();
-      
-      
-      
-try{      image = Image.createImage(imageis);
- int imagesize = width -40;
-      scaledimage = scale(image,imagesize,imagesize);
-      artimage = new ImageItem(null, scaledimage , ImageItem.LAYOUT_DEFAULT, null);
-       
-        mainForm.append(artimage);
-} catch(Exception u){}
-      fileCon.close();
+           
+   
+
+     
       titleframe = new StringItem("", "\n"+ unescapeJava(title) + "\n");
       artistframe = new StringItem("",unescapeJava(artist) + "\n");
       albumframe = new StringItem("",unescapeJava(album)+ "\n");
       lyricframe = new StringItem("","Lyrics:"+"\n"+lyric+ "\n");
-     
+             try{ downloadfile(imageurl, location  +"csnmusic"+ "/"+musicid+".jpg"); 
+    fileCon = (FileConnection) Connector.open(location +"csnmusic"+ "/"+musicid+".jpg");  
+     try{ imageis.close(); } catch (Exception d){}
+      imageis = fileCon.openInputStream();
+    image = Image.createImage(imageis);
+ int imagesize = width -40;
+      scaledimage = scale(image,imagesize,imagesize);
+      try{ imageis.close(); } catch (Exception d){}
+      artimage = new ImageItem(null, scaledimage , ImageItem.LAYOUT_DEFAULT, null);
+       
+        
+         fileCon.close();
+           mainForm.append(artimage);
+} catch(Exception u){u.printStackTrace()
+        ;try{fileCon.close();}catch(Exception du){}}
+            
         mainForm.append(titleframe);
+        
         mainForm.append(artistframe);
         mainForm.append(albumframe);
-        mainForm.append(lyricframe);
         
+        mainForm.append(lyricframe);
+
+       
         
         
         
  
   
   }catch(Exception e){e.printStackTrace();}
-         downloadfile(musicurl, location +"csnmusic"+ "/cache2.mp3");
-         playMusic();
+         
+         playMusic("");
         
     
 
